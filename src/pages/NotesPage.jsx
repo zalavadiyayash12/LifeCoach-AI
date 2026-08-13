@@ -71,7 +71,8 @@ export default function NotesPage() {
   const updateNotesInDatabase = async (updatedNotes) => {
     setNotes(updatedNotes); // Instant UI update
     try {
-      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
+      // Primary sync attempt
+      let response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,6 +81,19 @@ export default function NotesPage() {
           dataValue: updatedNotes
         })
       });
+
+      // Fallback sync attempt if primary fails
+      if (!response.ok) {
+        response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userId,
+            notes: updatedNotes
+          })
+        });
+      }
+
       const result = await response.json();
       if (!response.ok) {
         console.error("Failed to save notes to database:", result.message);
@@ -162,7 +176,7 @@ export default function NotesPage() {
     updateNotesInDatabase(updated);
   };
 
-    const colorStyles = {
+  const colorStyles = {
     yellow: 'bg-[#FFF9C4] dark:bg-amber-900/30 text-amber-900 dark:text-amber-100',
     blue: 'bg-[#E3F2FD] dark:bg-blue-900/30 text-blue-900 dark:text-blue-100',
     orange: 'bg-[#FFE0B2] dark:bg-orange-900/30 text-orange-900 dark:text-orange-100',

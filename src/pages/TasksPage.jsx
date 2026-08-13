@@ -68,9 +68,10 @@ export default function TasksPage() {
   }, [userId, navigate]);
 
   const updateTasksInDatabase = async (updatedTasks) => {
-    setTasks(updatedTasks);
+    setTasks(updatedTasks); // Instant UI update
     try {
-      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
+      // Primary sync attempt
+      let response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,6 +80,19 @@ export default function TasksPage() {
           dataValue: updatedTasks
         })
       });
+
+      // Fallback sync attempt if primary fails
+      if (!response.ok) {
+        response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userId,
+            tasks: updatedTasks
+          })
+        });
+      }
+
       const result = await response.json();
       if (!response.ok) {
         console.error("Failed to save tasks to database:", result.message);
@@ -459,7 +473,7 @@ export default function TasksPage() {
               </div>
 
               <button type="submit" className="w-full mt-4 py-3 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all shadow-md">
-                Save Task
+                Save Task Page
               </button>
             </form>
           </div>
