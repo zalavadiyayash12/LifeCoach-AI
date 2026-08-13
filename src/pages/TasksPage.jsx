@@ -51,7 +51,7 @@ export default function TasksPage() {
       return;
     }
 
-    fetch(`http://localhost:5000/api/user/data/${userId}`)
+    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/get-data?userId=${userId}`)
       .then(res => res.json())
       .then(data => {
         setTasks(data.tasks || []);
@@ -70,7 +70,7 @@ export default function TasksPage() {
   const updateTasksInDatabase = async (updatedTasks) => {
     setTasks(updatedTasks);
     try {
-      await fetch('http://localhost:5000/api/user/update-data', {
+      await fetch('https://lifecoach-backend-ktdn.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
