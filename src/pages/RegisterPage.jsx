@@ -56,7 +56,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/auth/register', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export default function RegisterPage() {
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Server se connect nahi ho paaya. Please start your Node.js backend.");
+      alert("Server se connect nahi ho paaya. Please check your backend deployment.");
     } finally {
       setIsLoading(false);
     }

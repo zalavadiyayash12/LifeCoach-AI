@@ -53,7 +53,7 @@ export default function ChatPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/${userId}`)
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -107,7 +107,7 @@ export default function ChatPage() {
 
   const fetchAIResponse = async (query) => {
     try {
-      const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/ai/chat', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, prompt: query })
@@ -121,7 +121,7 @@ export default function ChatPage() {
       }
     } catch (err) {
       console.error("AI Fetch Error:", err);
-      return "Network error! Make sure your Node.js backend server is running on port 5000.";
+      return "Network error! Make sure your Node.js backend server is running.";
     }
   };
 

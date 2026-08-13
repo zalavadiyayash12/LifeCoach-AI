@@ -45,7 +45,7 @@ export default function OnboardingPage() {
       const userId = localStorage.getItem('lifeCoach_userUid');
 
       try {
-        const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/user/onboarding', {
+        const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/onboarding', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

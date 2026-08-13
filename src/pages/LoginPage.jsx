@@ -38,7 +38,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/auth/login', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -51,7 +51,7 @@ export default function LoginPage() {
         data = JSON.parse(rawText);
       } catch (parseErr) {
         console.error("Non-JSON response received:", rawText);
-        throw new Error("Backend server did not return valid JSON. Ensure server.js is running on port 5000.");
+        throw new Error("Backend server did not return valid JSON. Ensure server.js is running.");
       }
 
       if (response.ok) {
@@ -68,7 +68,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message || "Server error. Make sure backend is running on port 5000.");
+      setError(err.message || "Server error. Make sure backend is running.");
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +82,7 @@ export default function LoginPage() {
     setIsForgotLoading(true);
 
     try {
-      const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/auth/reset-password', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail, newPassword }),
@@ -103,7 +103,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("Reset error:", err);
-      setForgotError("Server error. Make sure backend is running on port 5000.");
+      setForgotError("Server error. Make sure backend is running.");
     } finally {
       setIsForgotLoading(false);
     }

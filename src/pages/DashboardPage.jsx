@@ -99,7 +99,7 @@ export default function DashboardPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/${userId}`)
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {

@@ -57,7 +57,7 @@ export default function AICoachPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/${userId}`)
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -131,7 +131,7 @@ export default function AICoachPage() {
 
     try {
       // Send request to Node.js Backend API
-      const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/ai/chat', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, prompt: userMsg.text })
@@ -388,7 +388,7 @@ export default function AICoachPage() {
                 <input 
                   type="text" 
                   value={inputText}
-                  onChange={(e) => setInputTest(e.target.value)}
+                  onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ask for advice, schedule optimization, or motivation..."
                   className={`flex-1 px-6 py-4 rounded-full border transition-colors outline-none text-[15px] ${
                     isDarkMode 

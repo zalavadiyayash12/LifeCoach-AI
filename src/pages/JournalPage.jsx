@@ -42,7 +42,7 @@ export default function JournalPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/${userId}`)
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -68,7 +68,7 @@ export default function JournalPage() {
   const updateJournalInDatabase = async (updatedEntries) => {
     setEntries(updatedEntries);
     try {
-      await fetch('https://lifecoach-backend-ktdn.onrender.com/api/user/update-data', {
+      await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

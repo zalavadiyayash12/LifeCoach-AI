@@ -40,7 +40,7 @@ export default function GoalsPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`http://localhost:5000/api/user/data/${userId}`)
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -66,7 +66,7 @@ export default function GoalsPage() {
   const updateGoalsInDatabase = async (updatedGoals) => {
     setGoals(updatedGoals);
     try {
-      await fetch('http://localhost:5000/api/user/update-data', {
+      await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
