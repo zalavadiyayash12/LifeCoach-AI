@@ -141,7 +141,7 @@ app.post('/api/user/onboarding', async (req, res) => {
   }
 });
 
-// 4. Get User Specific Data API Routes (Handled both /data/:userId and /get-data?userId=...)
+// 4. Get User Specific Data API Routes (Handles all variants: /:userId, /data/:userId, /get-data)
 const handleGetUserData = async (req, res) => {
   try {
     const userId = req.params.userId || req.query.userId;
@@ -171,6 +171,7 @@ const handleGetUserData = async (req, res) => {
   }
 };
 
+app.get('/api/user/:userId', handleGetUserData);
 app.get('/api/user/data/:userId', handleGetUserData);
 app.get('/api/user/get-data', handleGetUserData);
 
