@@ -8,12 +8,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Explicitly path set kar diya taaki kahin se bhi run karne par .env mil jaye
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 
-// 🔴 JSON & URL-Encoded body size limit 50mb set kar di gayi hai taaki profile photo save ho sake 🔴
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
@@ -33,14 +31,12 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   onboardingData: { type: Object, default: {} },
   
-  // Profile Details
   profile: {
     avatar: { type: String, default: '' },
     bio: { type: String, default: '' },
     phone: { type: String, default: '' }
   },
   
-  // Modules Data Storage
   calendarEvents: { type: Array, default: [] },
   tasks: { type: Array, default: [] },
   goals: { type: Array, default: [] },
@@ -72,19 +68,13 @@ const User = mongoose.model('User', userSchema);
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already exists!' });
     }
-
     const newUser = new User({ name, email, password });
     await newUser.save();
-
-    res.status(201).json({ 
-      message: 'User registered successfully', 
-      userId: newUser._id 
-    });
+    res.status(201).json({ message: 'User registered successfully', userId: newUser._id });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ message: 'Server error during registration' });
@@ -95,44 +85,36 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'User not found with this email!' });
     }
-
     if (user.password !== password) {
       return res.status(400).json({ message: 'Invalid password!' });
     }
-
     const hasCompletedOnboarding = user.onboardingData && Object.keys(user.onboardingData).length > 0;
-
     res.status(200).json({
       message: 'Login successful',
       userId: user._id,
       name: user.name,
       isOnboarded: hasCompletedOnboarding
     });
-
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
 });
 
-// 🔴 2.5 Direct Reset Password API Route (Forgot Password) 🔴
+// 2.5 Reset Password API Route
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email, newPassword } = req.body;
-    
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "Email not found in our database!" });
     }
-
     user.password = newPassword;
     await user.save();
-
     res.status(200).json({ message: "Password updated successfully!" });
   } catch (error) {
     console.error("Reset password error:", error);
@@ -144,17 +126,14 @@ app.post('/api/auth/reset-password', async (req, res) => {
 app.post('/api/user/onboarding', async (req, res) => {
   try {
     const { userId, onboardingData } = req.body;
-
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
       { onboardingData: onboardingData },
       { new: true }
     );
-
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     res.status(200).json({ message: 'Onboarding data saved successfully' });
   } catch (error) {
     console.error('Onboarding error:', error);
@@ -162,10 +141,13 @@ app.post('/api/user/onboarding', async (req, res) => {
   }
 });
 
-// 4. Get User Specific Data API Route (For syncing all modules)
-app.get('/api/user/data/:userId', async (req, res) => {
+// 4. Get User Specific Data API Routes (Handled both /data/:userId and /get-data?userId=...)
+const handleGetUserData = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId);
+    const userId = req.params.userId || req.query.userId;
+    if (!userId) return res.status(400).json({ message: 'UserId is required' });
+
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
     
     res.json({
@@ -187,19 +169,20 @@ app.get('/api/user/data/:userId', async (req, res) => {
     console.error('Fetch data error:', error);
     res.status(500).json({ message: 'Server error fetching user data' });
   }
-});
+};
+
+app.get('/api/user/data/:userId', handleGetUserData);
+app.get('/api/user/get-data', handleGetUserData);
 
 // 5. Update/Save Module Data API Route
 app.post('/api/user/update-data', async (req, res) => {
   try {
     const { userId, dataType, dataValue } = req.body; 
-
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
       { [dataType]: dataValue },
       { new: true }
     );
-
     if (!updatedUser) return res.status(404).json({ message: 'User not found' });
     res.status(200).json({ message: 'Data updated successfully', [dataType]: updatedUser[dataType] });
   } catch (error) {
@@ -208,11 +191,30 @@ app.post('/api/user/update-data', async (req, res) => {
   }
 });
 
-// 🔴 6. Ultimate Safe AI Chat API Route with Onboarding Context 🔴
+// 🔴 Extra fallback endpoints for specific module updates if frontend calls them directly 🔴
+['tasks', 'goals', 'habits', 'notes', 'finance', 'health', 'journal', 'calendarEvents', 'profile', 'settings', 'focusStats'].forEach(moduleName => {
+  app.post(`/api/user/${moduleName}`, async (req, res) => {
+    try {
+      const { userId, ...data } = req.body;
+      const dataValue = data[moduleName] !== undefined ? data[moduleName] : data;
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { [moduleName]: dataValue },
+        { new: true }
+      );
+      if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+      res.status(200).json({ message: `${moduleName} updated successfully`, [moduleName]: updatedUser[moduleName] });
+    } catch (err) {
+      console.error(`Error updating ${moduleName}:`, err);
+      res.status(500).json({ message: `Server error updating ${moduleName}` });
+    }
+  });
+});
+
+// 6. AI Chat API Route
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const { userId, prompt } = req.body;
-    
     if (!userId) {
       return res.status(400).json({ message: 'UserId is required for AI chat' });
     }
@@ -227,7 +229,6 @@ app.post('/api/ai/chat', async (req, res) => {
       });
     }
 
-    // Onboarding details ko system prompt me include karna taaki AI ko sab pata ho
     const onboardingDetails = user.onboardingData && Object.keys(user.onboardingData).length > 0 
       ? JSON.stringify(user.onboardingData, null, 2) 
       : "No onboarding details submitted yet.";

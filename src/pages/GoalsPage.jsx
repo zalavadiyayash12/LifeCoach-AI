@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Bot, CheckSquare, Target, Activity, BookOpen, Calendar, 
   Clock, FileText, PieChart, Heart, User, Settings, LogOut, Search, 
-  Moon, Sun, Send, Plus, ArrowLeft, Sparkles
+  Plus, Moon, Sun, Trash2, Trophy, TrendingUp, AlertCircle, Flag, CheckCircle2
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import MobileNavbar from '../components/MobileNavbar';
 
-export default function ChatPage() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedDark = localStorage.getItem('lifeCoach_darkMode') === 'true';
-    if (savedDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    return savedDark;
-  });
+export default function GoalsPage() {
+ const [isDarkMode, setIsDarkMode] = useState(() => {
+  const savedDark = localStorage.getItem('lifeCoach_darkMode') === 'true';
+  if (savedDark) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+  return savedDark;
+});
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   
@@ -24,23 +24,10 @@ export default function ChatPage() {
   const [userName, setUserName] = useState(() => localStorage.getItem('lifeCoach_userName') || 'User');
   const [profileImage, setProfileImage] = useState(null);
 
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
-
-  const [inputText, setInputText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem(`lifeCoach_chat_${userName}`);
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: 1,
-        sender: 'ai',
-        text: `Hello ${userName.toUpperCase()}! I am your AI Life Coach. What goals are we crushing today?`
-      }
-    ];
-  });
+  const [goals, setGoals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!userId) {
@@ -53,49 +40,52 @@ export default function ChatPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/${userId}`)
+    fetch(`http://localhost:5000/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
           if (data.name) {
-            const firstN = data.name.split(' ')[0];
-            setUserName(firstN);
-            localStorage.setItem('lifeCoach_userName', firstN);
+            setUserName(data.name.split(' ')[0]);
+            localStorage.setItem('lifeCoach_userName', data.name.split(' ')[0]);
           }
+
+          setGoals(data.goals || []);
           if (data.profile && data.profile.avatar) {
             setProfileImage(data.profile.avatar);
             localStorage.setItem(`lifeCoach_profileImage_${userId}`, data.profile.avatar);
           }
         }
+        setIsLoading(false);
       })
-      .catch(err => console.error("Error fetching chat user data:", err));
+      .catch(err => {
+        console.error("Error fetching goals:", err);
+        setIsLoading(false);
+      });
   }, [userId, navigate]);
 
-  useEffect(() => {
-    localStorage.setItem(`lifeCoach_chat_${userName}`, JSON.stringify(messages));
-    scrollToBottom();
-  }, [messages, userName]);
+  const updateGoalsInDatabase = async (updatedGoals) => {
+    setGoals(updatedGoals);
+    try {
+      await fetch('http://localhost:5000/api/user/update-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId,
+          dataType: 'goals',
+          dataValue: updatedGoals
+        })
+      });
+    } catch (err) {
+      console.error("Error saving goals to database:", err);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    localStorage.setItem('lifeCoach_darkMode', newTheme);
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
+  const displayDate = currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const getGreeting = () => {
     const hour = currentTime.getHours();
     if (hour >= 5 && hour < 12) return 'Good Morning';
@@ -103,62 +93,53 @@ export default function ChatPage() {
     if (hour >= 17 && hour < 21) return 'Good Evening';
     return 'Good Night';
   };
-  const displayDate = currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const greeting = getGreeting();
 
-  const fetchAIResponse = async (query) => {
-    try {
-      const response = await fetch('https://lifecoach-backend-ktdn.onrender.com/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, prompt: query })
-      });
+ const toggleTheme = () => {
+  const newTheme = !isDarkMode;
+  setIsDarkMode(newTheme);
+  localStorage.setItem('lifeCoach_darkMode', newTheme);
+  if (newTheme) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
 
-      const data = await response.json();
-      if (response.ok) {
-        return data.reply;
-      } else {
-        return data.message || "Bhai, AI se connect hone me thodi dikkat aa rahi hai.";
-      }
-    } catch (err) {
-      console.error("AI Fetch Error:", err);
-      return "Network error! Make sure your Node.js backend server is running on port 5000.";
-    }
+  const handleAddGoal = (e) => {
+    e.preventDefault();
+    if (!newGoalTitle.trim()) return;
+    const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const newGoal = { id: Date.now(), title: newGoalTitle, progress: 0, color: randomColor };
+    const updated = [...goals, newGoal];
+    updateGoalsInDatabase(updated);
+    setNewGoalTitle('');
   };
 
-  const handleSendMessage = async (eOrText) => {
-    let textToSend = inputText;
-    
-    if (typeof eOrText === 'string') {
-      textToSend = eOrText;
-    } else if (eOrText && eOrText.preventDefault) {
-      eOrText.preventDefault();
-    }
-
-    if (!textToSend.trim()) return;
-
-    const userMsg = { id: Date.now(), sender: 'user', text: textToSend };
-    setMessages(prev => [...prev, userMsg]);
-    if (typeof eOrText !== 'string') setInputText('');
-    setIsTyping(true);
-
-    const aiResponseText = await fetchAIResponse(userMsg.text);
-    
-    const aiMsg = { id: Date.now() + 1, sender: 'ai', text: aiResponseText };
-    setMessages(prev => [...prev, aiMsg]);
-    setIsTyping(false);
+  const updateProgress = (id, newProgress) => {
+    const updated = goals.map(g => g.id === id ? { ...g, progress: parseInt(newProgress) } : g);
+    updateGoalsInDatabase(updated);
   };
 
-  const quickPrompts = [
-    "What should I focus on today?",
-    "How are my goals progressing?",
-    "Analyze my habits and give me advice"
-  ];
+  const deleteGoal = (id) => {
+    const updated = goals.filter(g => g.id !== id);
+    updateGoalsInDatabase(updated);
+  };
+
+  const filteredGoals = goals.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const totalGoals = goals.length;
+  const completedGoals = goals.filter(g => g.progress === 100).length;
+  const activeGoals = totalGoals - completedGoals;
+  const avgProgress = totalGoals > 0 ? Math.round(goals.reduce((acc, g) => acc + g.progress, 0) / totalGoals) : 0;
 
   const sidebarItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { name: 'AI Coach', icon: <Bot size={18} />, active: true },
+    { name: 'AI Coach', icon: <Bot size={18} /> },
     { name: 'Tasks', icon: <CheckSquare size={18} /> },
-    { name: 'Goals', icon: <Target size={18} /> },
+    { name: 'Goals', icon: <Target size={18} />, active: true },
     { name: 'Habits', icon: <Activity size={18} /> },
     { name: 'Journal', icon: <BookOpen size={18} /> },
     { name: 'Calendar', icon: <Calendar size={18} /> },
@@ -169,13 +150,15 @@ export default function ChatPage() {
   ];
 
   return (
-    <div className={`flex h-screen overflow-hidden ${isDarkMode ? 'bg-[#0F111A] text-slate-300' : 'bg-[#FAFAFA] text-slate-600'} font-sans text-sm transition-colors duration-300 relative`}>
+    <div className={`flex h-screen overflow-hidden ${isDarkMode ? 'bg-[#0F111A] text-slate-300' : 'bg-[#F8F9FB] text-slate-600'} font-sans text-sm transition-colors duration-300 relative`}>
       
-      <div className={`w-64 flex flex-col justify-between border-r ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-100 bg-white'} z-20 shrink-0 hidden lg:flex`}>
+      {/* SIDEBAR */}
+      <div className={`w-64 flex flex-col justify-between border-r ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-200 bg-white'} z-20 shrink-0 hidden lg:flex`}>
         <div className="overflow-y-auto custom-scrollbar">
           <div className="p-6 flex items-center gap-3 text-violet-600 dark:text-violet-400 font-bold text-lg tracking-wide sticky top-0 bg-inherit z-10">
             <Bot size={24} /> LifeCoach AI
           </div>
+          
           <div className="px-4 pb-4 space-y-1">
             {sidebarItems.map((item, i) => {
               let path = '/dashboard';
@@ -183,9 +166,9 @@ export default function ChatPage() {
               else if (item.name === 'Goals') path = '/goals';
               else if (item.name === 'Habits') path = '/habits';
               else if (item.name === 'Journal') path = '/journal';
+              else if (item.name === 'AI Coach') path = '/chat';
               else if (item.name === 'Calendar') path = '/calendar';
               else if (item.name === 'Focus') path = '/focus';
-              else if (item.name === 'AI Coach') path = '/chat';
               else if (item.name === 'Notes') path = '/notes';
               else if (item.name === 'Finance') path = '/finance';
               else if (item.name === 'Health') path = '/health';
@@ -194,20 +177,21 @@ export default function ChatPage() {
                 <Link 
                   key={i} 
                   to={path}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all relative z-50 ${item.active ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-semibold' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all relative z-50 ${item.active ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-semibold' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
                   {item.icon} {item.name}
                 </Link>
               );
             })}
           </div>
+
         </div>
         
-        <div className={`p-4 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'} space-y-1 shrink-0`}>
-          <Link to="/profile" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
+        <div className={`p-4 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'} space-y-1 shrink-0`}>
+          <Link to="/profile" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
              <User size={18} /> Profile
           </Link>
-          <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
+          <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
              <Settings size={18} /> Settings
           </Link>
           <button onClick={() => { localStorage.clear(); navigate('/'); }} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium">
@@ -218,167 +202,166 @@ export default function ChatPage() {
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header className={`h-16 border-b ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-100 bg-white'} shrink-0 z-50 flex items-center justify-between px-8 shadow-sm`}>
+        {/* HEADER */}
+        <header className={`h-16 border-b ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-200 bg-white'} shrink-0 z-50 flex items-center justify-between px-8 shadow-sm`}>
           <div className="flex flex-col">
-            <span className="font-semibold text-slate-800 dark:text-slate-200">{getGreeting()}, {userName}</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">{greeting}, {userName}</span>
             <span className="text-xs text-slate-400">{displayDate}</span>
           </div>
-          
-          <div className="flex items-center gap-4 ml-auto">
-            <div className="relative">
-              <button 
-                onClick={() => setShowQuickAdd(!showQuickAdd)} 
-                onBlur={() => setTimeout(() => setShowQuickAdd(false), 200)}
-                className="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-              >
-                <Plus size={18} />
-              </button>
-              {showQuickAdd && (
-                <div className={`absolute right-0 mt-2 w-48 rounded-xl shadow-lg border ${isDarkMode ? 'bg-[#161B26] border-slate-800' : 'bg-white border-slate-200'} z-50 overflow-hidden`}>
-                  <div className="p-2 space-y-1">
-                    <button onClick={() => navigate('/tasks')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-slate-700 dark:text-slate-300`}>
-                      <CheckSquare size={14} className="text-blue-500" /> New Task
-                    </button>
-                    <button onClick={() => navigate('/notes')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-slate-700 dark:text-slate-300`}>
-                      <FileText size={14} className="text-amber-500" /> New Note
-                    </button>
-                    <button onClick={() => navigate('/goals')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-slate-700 dark:text-slate-300`}>
-                      <Target size={14} className="text-emerald-500" /> New Goal
-                    </button>
-                  </div>
-                </div>
-              )}
+
+          <div className="relative w-96 hidden md:block">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search goals..." 
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDarkMode ? 'border-slate-700 bg-[#0F111A] text-white' : 'border-slate-200 bg-slate-50 text-slate-800'} focus:outline-none focus:ring-1 focus:ring-violet-500 text-sm`} 
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 rounded-full text-xs font-semibold border border-emerald-100 dark:border-emerald-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> AI Online
             </div>
 
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800">
+            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
               {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            
             <div 
               onClick={() => navigate('/profile')}
               className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold shadow-sm border border-violet-200 cursor-pointer hover:ring-2 ring-violet-500 transition-all overflow-hidden"
+              title="View Profile"
             >
-              {profileImage ? <img src={profileImage} alt="Profile" className="w-full h-full object-cover" /> : userName.charAt(0).toUpperCase()}
+              {profileImage ? (
+                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                userName.charAt(0).toUpperCase()
+              )}
             </div>
           </div>
         </header>
 
-        <main className={`flex-1 flex flex-col h-full overflow-hidden ${isDarkMode ? 'bg-[#0F111A]' : 'bg-[#F9FAFB]'}`}>
-          
-          <div className={`flex items-center px-6 py-4 border-b ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-200 bg-white'} shrink-0`}>
-            <button onClick={() => navigate('/dashboard')} className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-4 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-              <ArrowLeft size={20} />
-            </button>
-            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4">
-              <Bot size={24} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">AI Coach</h2>
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Online (Powered by Gemini AI)
+        {/* MAIN CONTENT */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="max-w-[1400px] w-full mx-auto space-y-6 pb-12">
+            
+            <div className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-3xl p-8 text-white flex justify-between items-center relative overflow-hidden shadow-md">
+              <div className="relative z-10 space-y-2">
+                <h1 className="text-3xl font-bold mb-1">Your Goals Dashboard 🎯</h1>
+                <p className="text-blue-100 text-sm">"A goal without a timeline is just a dream." Keep pushing, {userName}!</p>
+              </div>
+              <div className="hidden md:block relative z-10">
+                 <div className="text-center p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 w-32 flex flex-col justify-center">
+                  <div className="text-3xl font-bold mb-2">{avgProgress}%</div>
+                  <div className="text-[10px] text-blue-100 uppercase font-semibold">Success Rate</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar space-y-6">
-            <div className="max-w-[800px] mx-auto space-y-6">
-              
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex gap-4 max-w-[85%] md:max-w-[75%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
-                      msg.sender === 'user' 
-                      ? 'bg-purple-100 text-purple-600 border border-purple-200' 
-                      : 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'
-                    }`}>
-                      {msg.sender === 'user' ? (
-                        profileImage ? <img src={profileImage} alt="User" className="w-full h-full object-cover" /> : userName.charAt(0).toUpperCase()
-                      ) : (
-                        <Bot size={20} />
-                      )}
-                    </div>
-
-                    <div className={`p-4 text-[15px] leading-relaxed shadow-sm whitespace-pre-wrap ${
-                      msg.sender === 'user' 
-                      ? 'bg-[#8B5CF6] text-white rounded-2xl rounded-tr-sm' 
-                      : isDarkMode ? 'bg-[#161B26] border border-slate-700 text-slate-200 rounded-2xl rounded-tl-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm'
-                    }`}>
-                      {msg.sender === 'ai' ? (
-                        <span dangerouslySetInnerHTML={{__html: msg.text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}} />
-                      ) : (
-                        msg.text
-                      )}
-                    </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { title: 'Total Goals', value: totalGoals, icon: <Target size={18} className="text-blue-500" />, tag: 'All time', tagColor: 'text-blue-500 bg-blue-50 dark:bg-blue-500/10' },
+                { title: 'In Progress', value: activeGoals, icon: <Activity size={18} className="text-orange-500" />, tag: 'Active', tagColor: 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' },
+                { title: 'Completed', value: completedGoals, icon: <Trophy size={18} className="text-emerald-500" />, tag: 'Done', tagColor: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' },
+                { title: 'Avg Progress', value: `${avgProgress}%`, icon: <TrendingUp size={18} className="text-purple-500" />, tag: 'Overall', tagColor: 'text-purple-500 bg-purple-50 dark:bg-purple-500/10' }
+              ].map((stat, i) => (
+                <div key={i} className={`p-5 rounded-2xl border ${isDarkMode ? 'bg-[#161B26] border-slate-800' : 'bg-white border-slate-100'} shadow-sm flex flex-col justify-between h-32`}>
+                  <div className="flex justify-between items-start">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50'}`}>{stat.icon}</div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${stat.tagColor}`}>{stat.tag}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-0.5">{stat.value}</h3>
+                    <p className="text-xs text-slate-400">{stat.title}</p>
                   </div>
                 </div>
               ))}
-
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex gap-4 max-w-[85%] flex-row">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">
-                      <Bot size={20} />
-                    </div>
-                    <div className={`p-4 rounded-2xl shadow-sm rounded-tl-sm flex items-center gap-1.5 ${isDarkMode ? 'bg-[#161B26] border border-slate-700' : 'bg-white border border-slate-200'}`}>
-                      <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"></span>
-                      <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                      <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{animationDelay: '0.4s'}}></span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
             </div>
-          </div>
 
-          <div className={`p-4 md:px-8 md:py-6 shrink-0 border-t ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-200 bg-white'}`}>
-            <div className="max-w-[1000px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-3 mb-2">
-                {quickPrompts.map((prompt, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => handleSendMessage(prompt)}
-                    disabled={isTyping}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold transition-colors border flex items-center gap-2 ${
-                      isDarkMode 
-                      ? 'border-slate-700 text-[#8B5CF6] hover:bg-slate-800 bg-[#0F111A]' 
-                      : 'border-purple-200 text-[#8B5CF6] hover:bg-purple-50 bg-white'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    <Sparkles size={12} /> {prompt}
-                  </button>
-                ))}
+              <div className={`lg:col-span-2 rounded-2xl border ${isDarkMode ? 'bg-[#161B26] border-slate-800' : 'bg-white border-slate-100'} p-6 shadow-sm`}>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <Target size={16} className="text-blue-500"/> Current Goals Progress
+                  </h2>
+                  <span className="text-xs text-slate-400">{activeGoals} Active</span>
+                </div>
+                
+                {isLoading ? (
+                  <div className="text-center py-10 text-slate-400">Loading your goals...</div>
+                ) : (
+                  <div className="space-y-6">
+                    {filteredGoals.length === 0 ? (
+                      <p className="text-slate-400 text-xs py-4">No matching goals found.</p>
+                    ) : (
+                      filteredGoals.map((g) => (
+                        <div key={g.id} className="relative group">
+                          <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <span className="flex items-center gap-2">
+                              {g.progress >= 100 && <CheckCircle2 size={12} className="text-emerald-500"/>} 
+                              {g.title}
+                            </span> 
+                            <div className="flex items-center gap-4">
+                               <button onClick={() => deleteGoal(g.id)} className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Trash2 size={14}/>
+                               </button>
+                               <span className={g.color.replace('bg-', 'text-')}>{g.progress}%</span>
+                            </div>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full relative">
+                            <div className={`h-full rounded-full ${g.color} transition-all duration-300`} style={{ width: `${g.progress}%` }}></div>
+                            <input 
+                              type="range" 
+                              min="0" max="100" 
+                              value={g.progress}
+                              onChange={(e) => updateProgress(g.id, e.target.value)}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
 
-              <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-                <input 
-                  type="text" 
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Ask for advice, schedule optimization, or motivation..."
-                  className={`flex-1 px-6 py-4 rounded-full border transition-colors outline-none text-[15px] ${
-                    isDarkMode 
-                    ? 'bg-[#0F111A] border-slate-700 focus:border-[#8B5CF6] text-white' 
-                    : 'bg-slate-50 border-slate-300 focus:border-[#8B5CF6] text-slate-800'
-                  }`}
-                  disabled={isTyping}
-                />
-                <button 
-                  type="submit"
-                  disabled={!inputText.trim() || isTyping}
-                  className="w-14 h-14 rounded-full bg-[#8B5CF6] hover:bg-purple-600 disabled:bg-slate-300 disabled:text-slate-500 text-white flex items-center justify-center transition-all shrink-0 shadow-md"
-                >
-                  <Send size={22} className={inputText.trim() ? "translate-x-0.5" : ""} />
-                </button>
-              </form>
-            </div>
-          </div>
+              <div className={`rounded-2xl border ${isDarkMode ? 'bg-[#161B26] border-slate-800' : 'bg-white border-slate-100'} p-6 shadow-sm flex flex-col`}>
+                <h2 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                  <Flag size={16} className="text-purple-500"/> Add New Target
+                </h2>
+                
+                <form onSubmit={handleAddGoal} className="flex flex-col gap-4 flex-1">
+                  <div className="space-y-2 flex-1">
+                    <label className="text-xs font-semibold text-slate-500">Goal Title</label>
+                    <input 
+                      type="text" 
+                      value={newGoalTitle}
+                      onChange={(e) => setNewGoalTitle(e.target.value)}
+                      placeholder="e.g. Master React JS" 
+                      className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'border-slate-700 bg-[#0F111A] text-white' : 'border-slate-200 bg-slate-50 text-slate-800'} focus:outline-none focus:ring-1 focus:ring-violet-500 text-sm`}
+                    />
+                    <div className="p-3 mt-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-900/30 flex items-start gap-2">
+                      <AlertCircle size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-blue-600 dark:text-blue-400">Setting clear, achievable goals increases your success rate by 42%. Be specific!</p>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-md shadow-violet-500/20 mt-auto">
+                    <Plus size={16} /> Create Goal
+                  </button>
+                </form>
+              </div>
 
+            </div>
+
+          </div>
         </main>
       </div>
+
+      {/* 📱 Mobile Bottom Navigation Bar */}
       <MobileNavbar />
     </div>
   );

@@ -57,7 +57,7 @@ export default function AICoachPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(` https://lifecoach-backend-ktdn.onrender.com/api/user/${userId} `)
+    fetch(`https://lifecoach-backend-ktdn.onrender.com/api/user/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -154,7 +154,7 @@ export default function AICoachPage() {
       const errorMsg = { 
         id: Date.now() + 1, 
         sender: 'ai', 
-        text: "Oops, I'm having trouble connecting to my servers right now. Please check if your backend server is running on port 5000!" 
+        text: "Oops, I'm having trouble connecting to my servers right now. Please check if your backend server is running!" 
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
@@ -388,7 +388,7 @@ export default function AICoachPage() {
                 <input 
                   type="text" 
                   value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
+                  onChange={(e) => setInputTest(e.target.value)}
                   placeholder="Ask for advice, schedule optimization, or motivation..."
                   className={`flex-1 px-6 py-4 rounded-full border transition-colors outline-none text-[15px] ${
                     isDarkMode 
