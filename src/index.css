@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================
+   🔥 PREMIUM CUSTOM SCROLLBAR 🔥
+========================================== */
+
+/* Poori website ka global scrollbar patla aur stylish karna */
+::-webkit-scrollbar {
+  width: 6px; /* Patla scrollbar */
+  height: 6px;
+}
+
+/* Scrollbar ke peeche ki patti (track) ko invisible karna */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Scrollbar ka draggable part (Light Mode) */
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8; /* slate-400 */
+}
+
+/* 🔴 DARK MODE SCROLLBAR FIX 🔴 */
+.dark ::-webkit-scrollbar-track {
+  background: #161B26; /* Dark background match karega */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #334155; /* slate-700 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #475569; /* slate-600 */
+}
+
+/* For elements with specific .custom-scrollbar class */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* ==========================================
+   📱 MOBILE RESPONSIVE FIXES 📱
+========================================== */
+@media (max-width: 1024px) {
+  /* Mobile screens par main content ke niche extra padding taaki bottom nav bar se content na chupe */
+  main {
+    padding-bottom: 5rem !important;
+  }
+}
