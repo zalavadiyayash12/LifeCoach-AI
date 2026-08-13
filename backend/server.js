@@ -126,6 +126,9 @@ app.post('/api/auth/reset-password', async (req, res) => {
 app.post('/api/user/onboarding', async (req, res) => {
   try {
     const { userId, onboardingData } = req.body;
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid UserId is required' });
+    }
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
       { onboardingData: onboardingData },
@@ -141,11 +144,17 @@ app.post('/api/user/onboarding', async (req, res) => {
   }
 });
 
-// 4. Get User Specific Data API Routes (Handles all variants: /:userId, /data/:userId, /get-data)
+// 4. Get User Specific Data API Routes (Safe-Guarded with ObjectId Validation)
 const handleGetUserData = async (req, res) => {
   try {
     const userId = req.params.userId || req.query.userId;
-    if (!userId) return res.status(400).json({ message: 'UserId is required' });
+    if (!userId || userId === 'null' || userId === 'undefined') {
+      return res.status(400).json({ message: 'UserId is required' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid User ID format' });
+    }
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -166,8 +175,8 @@ const handleGetUserData = async (req, res) => {
       focusStats: user.focusStats || {}
     });
   } catch (error) {
-    console.error('Fetch data error:', error);
-    res.status(500).json({ message: 'Server error fetching user data' });
+    console.error('Fetch data error:', error.message);
+    res.status(500).json({ message: 'Server error fetching user data: ' + error.message });
   }
 };
 
@@ -180,8 +189,8 @@ app.post('/api/user/update-data', async (req, res) => {
   try {
     const { userId, dataType, dataValue } = req.body; 
     
-    if (!userId) {
-      return res.status(400).json({ message: 'UserId is missing in request' });
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid UserId is required' });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -206,7 +215,9 @@ app.post('/api/user/update-data', async (req, res) => {
   app.post(`/api/user/${moduleName}`, async (req, res) => {
     try {
       const { userId, ...data } = req.body;
-      if (!userId) return res.status(400).json({ message: 'UserId is missing' });
+      if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: 'Valid UserId is required' });
+      }
       
       const dataValue = data[moduleName] !== undefined ? data[moduleName] : data;
       const updatedUser = await User.findByIdAndUpdate(
@@ -227,8 +238,8 @@ app.post('/api/user/update-data', async (req, res) => {
 app.post('/api/ai/chat', async (req, res) => {
   try {
     const { userId, prompt } = req.body;
-    if (!userId) {
-      return res.status(400).json({ message: 'UserId is required for AI chat' });
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Valid UserId is required for AI chat' });
     }
 
     const user = await User.findById(userId);
