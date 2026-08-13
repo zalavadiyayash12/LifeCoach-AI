@@ -175,20 +175,29 @@ app.get('/api/user/:userId', handleGetUserData);
 app.get('/api/user/data/:userId', handleGetUserData);
 app.get('/api/user/get-data', handleGetUserData);
 
-// 5. Update/Save Module Data API Route
+// 5. Update/Save Module Data API Route (Safe-Guarded)
 app.post('/api/user/update-data', async (req, res) => {
   try {
     const { userId, dataType, dataValue } = req.body; 
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'UserId is missing in request' });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
       { [dataType]: dataValue },
-      { new: true }
+      { new: true, runValidators: false }
     );
-    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found in database' });
+    }
+    
     res.status(200).json({ message: 'Data updated successfully', [dataType]: updatedUser[dataType] });
   } catch (error) {
-    console.error('Update data error:', error);
-    res.status(500).json({ message: 'Server error updating data' });
+    console.error('Update data error:', error.message);
+    res.status(500).json({ message: 'Server error updating data: ' + error.message });
   }
 });
 
@@ -197,17 +206,19 @@ app.post('/api/user/update-data', async (req, res) => {
   app.post(`/api/user/${moduleName}`, async (req, res) => {
     try {
       const { userId, ...data } = req.body;
+      if (!userId) return res.status(400).json({ message: 'UserId is missing' });
+      
       const dataValue = data[moduleName] !== undefined ? data[moduleName] : data;
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         { [moduleName]: dataValue },
-        { new: true }
+        { new: true, runValidators: false }
       );
       if (!updatedUser) return res.status(404).json({ message: 'User not found' });
       res.status(200).json({ message: `${moduleName} updated successfully`, [moduleName]: updatedUser[moduleName] });
     } catch (err) {
-      console.error(`Error updating ${moduleName}:`, err);
-      res.status(500).json({ message: `Server error updating ${moduleName}` });
+      console.error(`Error updating ${moduleName}:`, err.message);
+      res.status(500).json({ message: `Server error updating ${moduleName}: ${err.message}` });
     }
   });
 });
