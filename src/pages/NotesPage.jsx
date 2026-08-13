@@ -20,7 +20,8 @@ export default function NotesPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   
-  const userId = localStorage.getItem('lifeCoach_userUid');
+  const rawUserId = localStorage.getItem('lifeCoach_userUid');
+  const userId = rawUserId ? rawUserId.replace(/['"]+/g, '').trim() : null;
   const [userName, setUserName] = useState(() => localStorage.getItem('lifeCoach_userName') || 'User');
   const [profileImage, setProfileImage] = useState(null);
 

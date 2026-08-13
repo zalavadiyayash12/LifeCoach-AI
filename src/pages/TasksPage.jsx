@@ -21,7 +21,8 @@ export default function TasksPage() {
   const navigate = useNavigate();
   
   const userName = localStorage.getItem('lifeCoach_userName') || 'User';
-  const userId = localStorage.getItem('lifeCoach_userUid'); 
+  const rawUserId = localStorage.getItem('lifeCoach_userUid'); 
+  const userId = rawUserId ? rawUserId.replace(/['"]+/g, '').trim() : null;
   const [profileImage, setProfileImage] = useState(null);
 
   const [activeFilter, setActiveFilter] = useState('All'); 
