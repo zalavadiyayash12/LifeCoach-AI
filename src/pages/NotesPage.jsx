@@ -54,7 +54,7 @@ export default function NotesPage() {
             localStorage.setItem('lifeCoach_userName', data.name.split(' ')[0]);
           }
 
-          setNotes(data.notes || []);
+          setNotes(Array.isArray(data.notes) ? data.notes : []);
           if (data.profile && data.profile.avatar) {
             setProfileImage(data.profile.avatar);
             localStorage.setItem(`lifeCoach_profileImage_${userId}`, data.profile.avatar);
@@ -69,9 +69,9 @@ export default function NotesPage() {
   }, [userId, navigate]);
 
   const updateNotesInDatabase = async (updatedNotes) => {
-    setNotes(updatedNotes);
+    setNotes(updatedNotes); // Instant UI update
     try {
-      await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,6 +80,10 @@ export default function NotesPage() {
           dataValue: updatedNotes
         })
       });
+      const result = await response.json();
+      if (!response.ok) {
+        console.error("Failed to save notes to database:", result.message);
+      }
     } catch (err) {
       console.error("Error saving notes to database:", err);
     }
@@ -158,7 +162,7 @@ export default function NotesPage() {
     updateNotesInDatabase(updated);
   };
 
-  const colorStyles = {
+    const colorStyles = {
     yellow: 'bg-[#FFF9C4] dark:bg-amber-900/30 text-amber-900 dark:text-amber-100',
     blue: 'bg-[#E3F2FD] dark:bg-blue-900/30 text-blue-900 dark:text-blue-100',
     orange: 'bg-[#FFE0B2] dark:bg-orange-900/30 text-orange-900 dark:text-orange-100',
@@ -168,7 +172,7 @@ export default function NotesPage() {
   };
 
   const filteredNotes = notes.filter(n => {
-    const matchesSearch = (n.title.toLowerCase() + n.content.toLowerCase()).includes(searchQuery.toLowerCase());
+    const matchesSearch = ((n.title || '') + (n.content || '')).toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = activeFilter === 'All' || n.category === activeFilter;
     return matchesSearch && matchesFilter;
   });

@@ -54,7 +54,7 @@ export default function TasksPage() {
     fetch(`https://lifecoach-ai-169y.onrender.com/api/user/get-data?userId=${userId}`)
       .then(res => res.json())
       .then(data => {
-        setTasks(data.tasks || []);
+        setTasks(Array.isArray(data.tasks) ? data.tasks : []);
         if (data.profile && data.profile.avatar) {
           setProfileImage(data.profile.avatar);
           localStorage.setItem(`lifeCoach_profileImage_${userId}`, data.profile.avatar);
@@ -70,7 +70,7 @@ export default function TasksPage() {
   const updateTasksInDatabase = async (updatedTasks) => {
     setTasks(updatedTasks);
     try {
-      await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
+      const response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,6 +79,10 @@ export default function TasksPage() {
           dataValue: updatedTasks
         })
       });
+      const result = await response.json();
+      if (!response.ok) {
+        console.error("Failed to save tasks to database:", result.message);
+      }
     } catch (err) {
       console.error("Error saving tasks to database:", err);
     }
@@ -172,7 +176,7 @@ export default function TasksPage() {
     return tasks.filter(t => {
       const matchesStatus = (t.status || 'todo').toLowerCase().replace(/\s+/g, '') === status;
       const matchesFilter = activeFilter === 'All' || (t.tags && t.tags.includes(activeFilter));
-      const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = (t.title || '').toLowerCase().includes(searchQuery.toLowerCase());
       return matchesStatus && matchesFilter && matchesSearch;
     });
   };
