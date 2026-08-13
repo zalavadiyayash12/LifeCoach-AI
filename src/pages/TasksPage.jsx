@@ -474,7 +474,7 @@ export default function TasksPage() {
               </div>
 
               <button type="submit" className="w-full mt-4 py-3 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all shadow-md">
-                Save Task Page
+                Save Task
               </button>
             </form>
           </div>
