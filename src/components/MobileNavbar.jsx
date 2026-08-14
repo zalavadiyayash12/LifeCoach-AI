@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   LayoutDashboard, CheckSquare, Bot, Clock, User, 
-  Target, Activity, BookOpen, Calendar, FileText, PieChart, Heart 
+  Target, Activity, BookOpen, Calendar, FileText, PieChart, Heart,Settings 
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
