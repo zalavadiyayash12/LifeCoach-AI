@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, Bot, CheckSquare, Target, Activity, BookOpen, Calendar, 
-  Clock, FileText, PieChart, Heart, User, Settings, LogOut, Search, 
-  Plus, Moon, Sun, Flame, Droplets, Smile, Zap, Book, CheckCircle2, Sparkles 
+import {  
+  LayoutDashboard, Bot, CheckSquare, Target, Activity, BookOpen, Calendar,  
+  Clock, FileText, PieChart, Heart, User, Settings, LogOut, Search,  
+  Plus, Moon, Sun, Flame, Droplets, Smile, Zap, Book, CheckCircle2, Sparkles  
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import MobileNavbar from '../components/MobileNavbar';
@@ -268,7 +268,8 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        {/* Added pb-24 here so content is not hidden behind the mobile bottom navbar */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24">
           <div className="max-w-[1400px] w-full mx-auto space-y-6">
             
             {isLoading ? (
@@ -278,7 +279,7 @@ export default function DashboardPage() {
                 <div className={`w-full bg-gradient-to-r ${weather.bgGradient} rounded-3xl p-8 text-white flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden shadow-md transition-all duration-700`}>
                   <div className="relative z-10 space-y-4">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold backdrop-blur-sm">
-                           <Bot size={14}/> AI COACH ONLINE
+                            <Bot size={14}/> AI COACH ONLINE
                     </div>
                     <div>
                       <h1 className="text-3xl font-bold mb-1">{greeting}, {userName} 👋</h1>
@@ -434,19 +435,28 @@ export default function DashboardPage() {
                       {habitsData.length === 0 ? (
                         <p className="text-xs text-slate-400 text-center py-6">No habits found. Add some from the Habits page!</p>
                       ) : (
-                        habitsData.map((habit, i) => (
-                          <div key={habit.id || i} className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${habit.done ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                            <div className="flex-1">
-                              <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                <span>{habit.name}</span>
-                              </div>
-                              <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
-                                <div className={`h-full rounded-full ${habit.done ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} style={{ width: habit.done ? '100%' : '10%' }}></div>
+                        habitsData.map((habit, i) => {
+                          const habitColor = habit.color || 'bg-emerald-500';
+                          const isDone = habit.done;
+                          const progressWidth = isDone ? '100%' : (habit.progress || '30%');
+
+                          return (
+                            <div key={habit.id || i} className="flex items-center gap-3">
+                              <div className={`w-3 h-3 rounded-full ${isDone ? 'bg-emerald-500' : habitColor.includes('bg-') ? habitColor : 'bg-violet-500'}`}></div>
+                              <div className="flex-1">
+                                <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                  <span>{habit.name || habit.title}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full ${isDone ? 'bg-emerald-500' : habitColor.includes('bg-') ? habitColor : 'bg-violet-500'}`} 
+                                    style={{ width: progressWidth }}
+                                  ></div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </div>
