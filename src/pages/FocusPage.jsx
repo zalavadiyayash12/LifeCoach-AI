@@ -53,7 +53,8 @@ export default function FocusPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/${userId}`)
+    // Fixed Endpoint matching Goals and Dashboard
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -276,7 +277,8 @@ export default function FocusPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        {/* Added pb-24 here for mobile view */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24">
           <div className="max-w-[1200px] mx-auto">
             
             <div className="mb-8">

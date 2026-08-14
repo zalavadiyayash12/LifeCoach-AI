@@ -56,7 +56,8 @@ export default function ProfilePage() {
       setProfileImage(savedUserPhoto);
     }
 
-    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/get-data?userId=${userId}`)
+    // Fixed Endpoint matching Goals and Dashboard
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -295,8 +296,8 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        {/* MAIN CONTENT with pb-24 for mobile navbar */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24">
           <div className="max-w-[1200px] mx-auto">
             
             <div className="mb-6">
