@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!userId) {
-      navigate('/');
+      navigate('/', { preventScrollReset: true });
       return;
     }
 
@@ -57,7 +57,8 @@ export default function SettingsPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/get-data?userId=${userId}`)
+    // Fixed Endpoint matching Dashboard and Goals
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -215,7 +216,7 @@ export default function SettingsPage() {
           body: JSON.stringify({ userId: userId, dataType: 'tasks', dataValue: [] })
         });
         localStorage.clear();
-        navigate('/');
+        navigate('/', { preventScrollReset: true });
         window.location.reload();
       } catch (err) {
         console.error("Reset error:", err);
@@ -279,7 +280,7 @@ export default function SettingsPage() {
           <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-semibold">
              <SettingsIcon size={18} /> Settings
           </Link>
-          <button onClick={() => { localStorage.clear(); navigate('/'); }} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium">
+          <button onClick={() => { localStorage.clear(); navigate('/', { preventScrollReset: true }); }} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium">
             <LogOut size={18} /> Logout
           </button>
         </div>
@@ -301,7 +302,7 @@ export default function SettingsPage() {
               {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <div 
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate('/profile', { preventScrollReset: true })}
               className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold cursor-pointer hover:ring-2 ring-violet-500 transition-all overflow-hidden shadow-sm"
               title="View Profile"
             >
@@ -314,8 +315,8 @@ export default function SettingsPage() {
           </div>
         </header>
 
-        {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        {/* MAIN CONTENT with pb-24 for mobile navbar */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24">
           <div className="max-w-[1200px] mx-auto">
             
             <div className="mb-8">
