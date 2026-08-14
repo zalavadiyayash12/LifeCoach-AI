@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Sparkles, Moon, Sun, AlertCircle, X, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import MobileNavbar from '../components/MobileNavbar';
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -59,9 +60,9 @@ export default function LoginPage() {
         localStorage.setItem('lifeCoach_userName', data.name);
 
         if (data.isOnboarded) {
-          navigate('/dashboard');
+          navigate('/dashboard', { preventScrollReset: true });
         } else {
-          navigate('/onboarding');
+          navigate('/onboarding', { preventScrollReset: true });
         }
       } else {
         setError(data.message || "Invalid credentials!");
@@ -110,23 +111,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen flex w-full ${isDarkMode ? 'bg-dark-bg text-dark-text' : 'bg-light-bg text-light-text'} transition-colors duration-500`}>
+    <div className={`min-h-screen flex flex-col lg:flex-row w-full ${isDarkMode ? 'bg-dark-bg text-dark-text' : 'bg-light-bg text-light-text'} transition-colors duration-500`}>
       
-      {/* LEFT SIDE - Branding & Animation */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-light-primary to-blue-600 dark:from-dark-primary dark:to-dark-accent p-12 flex-col justify-between relative overflow-hidden">
+      {/* LEFT SIDE - Branding & Animation (Mobile par upar, Desktop par left side) */}
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-light-primary to-blue-600 dark:from-dark-primary dark:to-dark-accent p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
         <motion.div 
           animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
           transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-          className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-3xl backdrop-blur-md transform rotate-12"
+          className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-3xl backdrop-blur-md transform rotate-12 hidden sm:block"
         />
         <motion.div 
           animate={{ y: [0, 30, 0], opacity: [0.3, 0.6, 0.3] }}
           transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
-          className="absolute bottom-40 left-10 w-48 h-48 bg-white/5 rounded-full backdrop-blur-sm"
+          className="absolute bottom-10 left-10 w-48 h-48 bg-white/5 rounded-full backdrop-blur-sm hidden sm:block"
         />
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2 text-white mb-16">
+          <div className="flex items-center gap-2 text-white mb-8 lg:mb-16">
             <Sparkles className="w-8 h-8" />
             <span className="text-2xl font-bold tracking-tight">LifeCoach AI</span>
           </div>
@@ -135,7 +136,7 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl font-extrabold text-white leading-tight mb-6"
+            className="text-3xl lg:text-5xl font-extrabold text-white leading-tight mb-4 lg:mb-6"
           >
             Your personal AI coach, <br /> always by your side
           </motion.h1>
@@ -144,14 +145,14 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-lg text-blue-100 max-w-md"
+            className="text-base lg:text-lg text-blue-100 max-w-md"
           >
             Organize tasks, build habits, track goals, and get intelligent guidance — all in one beautiful place.
           </motion.p>
         </div>
 
-        <div className="relative z-10 p-6 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl">
-          <p className="text-white/90 italic">"The secret of getting ahead is getting started."</p>
+        <div className="relative z-10 p-6 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl mt-8 lg:mt-0">
+          <p className="text-white/90 italic text-sm lg:text-base">"The secret of getting ahead is getting started."</p>
           <div className="mt-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
@@ -164,7 +165,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* RIGHT SIDE - Login Form */}
+      {/* RIGHT SIDE - Login Form (Mobile par banner ke niche, Desktop par right side) */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-24 relative">
         <button 
           onClick={() => setIsDarkMode(!isDarkMode)}
@@ -266,7 +267,7 @@ export default function LoginPage() {
         </motion.div>
 
         {/* Footer */}
-        <div className="absolute bottom-6 text-sm text-gray-400">
+        <div className="mt-12 lg:absolute lg:bottom-6 text-sm text-gray-400 text-center">
           Made with ❤️ by Yash
         </div>
       </div>

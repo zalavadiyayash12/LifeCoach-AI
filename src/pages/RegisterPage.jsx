@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, User, Sparkles, Moon, Sun, CheckCircle2, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import MobileNavbar from '../components/MobileNavbar';
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -74,7 +75,7 @@ export default function RegisterPage() {
         localStorage.setItem('lifeCoach_userUid', data.userId);
         localStorage.setItem('lifeCoach_userName', name);
         alert("Account created successfully! Please login.");
-        navigate('/');
+        navigate('/', { preventScrollReset: true });
       } else {
         alert(data.message || "Registration failed!");
       }
@@ -87,34 +88,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className={`min-h-screen flex w-full ${isDarkMode ? 'bg-dark-bg text-dark-text' : 'bg-light-bg text-light-text'} transition-colors duration-500`}>
+    <div className={`min-h-screen flex flex-col lg:flex-row w-full ${isDarkMode ? 'bg-dark-bg text-dark-text' : 'bg-light-bg text-light-text'} transition-colors duration-500`}>
       
-      {/* LEFT SIDE - Branding */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-light-primary to-blue-600 dark:from-dark-primary dark:to-dark-accent p-12 flex-col justify-between relative overflow-hidden">
-        <motion.div animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }} transition={{ repeat: Infinity, duration: 5 }} className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-3xl backdrop-blur-md transform rotate-12" />
-        <motion.div animate={{ y: [0, 30, 0], opacity: [0.3, 0.6, 0.3] }} transition={{ repeat: Infinity, duration: 7 }} className="absolute bottom-40 left-10 w-48 h-48 bg-white/5 rounded-full backdrop-blur-sm" />
+      {/* LEFT SIDE - Branding (Mobile par top, Desktop par left side) */}
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-light-primary to-blue-600 dark:from-dark-primary dark:to-dark-accent p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+        <motion.div animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }} transition={{ repeat: Infinity, duration: 5 }} className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-3xl backdrop-blur-md transform rotate-12 hidden sm:block" />
+        <motion.div animate={{ y: [0, 30, 0], opacity: [0.3, 0.6, 0.3] }} transition={{ repeat: Infinity, duration: 7 }} className="absolute bottom-10 left-10 w-48 h-48 bg-white/5 rounded-full backdrop-blur-sm hidden sm:block" />
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2 text-white mb-16">
+          <div className="flex items-center gap-2 text-white mb-8 lg:mb-16">
             <Sparkles className="w-8 h-8" />
             <span className="text-2xl font-bold tracking-tight">LifeCoach AI</span>
           </div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-5xl font-extrabold text-white leading-tight mb-6">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-3xl lg:text-5xl font-extrabold text-white leading-tight mb-4 lg:mb-6">
             Start your journey <br /> with LifeCoach AI
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-lg text-blue-100 max-w-md">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-base lg:text-lg text-blue-100 max-w-md">
             Create an account to build habits, track goals, and unlock your true potential.
           </motion.p>
         </div>
       </div>
 
-      {/* RIGHT SIDE - Register Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-12 relative overflow-y-auto">
+      {/* RIGHT SIDE - Register Form (Mobile par banner ke niche, Desktop par right side) */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 lg:p-12 relative">
         <button onClick={() => setIsDarkMode(!isDarkMode)} className="absolute top-8 right-8 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
           {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md my-auto pt-10">
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md my-auto pt-6">
           <div className="text-center lg:text-left mb-8">
             <h2 className="text-3xl font-bold mb-2">Create account</h2>
             <p className="text-gray-500 dark:text-gray-400">Join thousands improving their lives daily.</p>
@@ -166,9 +167,9 @@ export default function RegisterPage() {
               </div>
               {password.length > 0 && (
                 <div className="mt-2 flex gap-1 h-1.5 w-full rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-                  <div className={`h-full ${strength >= 1 ? 'bg-danger' : 'bg-transparent'} w-1/3 transition-all`}></div>
-                  <div className={`h-full ${strength >= 2 ? 'bg-warning' : 'bg-transparent'} w-1/3 transition-all`}></div>
-                  <div className={`h-full ${strength === 3 ? 'bg-success' : 'bg-transparent'} w-1/3 transition-all`}></div>
+                  <div className={`h-full ${strength >= 1 ? 'bg-red-500' : 'bg-transparent'} w-1/3 transition-all`}></div>
+                  <div className={`h-full ${strength >= 2 ? 'bg-amber-500' : 'bg-transparent'} w-1/3 transition-all`}></div>
+                  <div className={`h-full ${strength === 3 ? 'bg-emerald-500' : 'bg-transparent'} w-1/3 transition-all`}></div>
                 </div>
               )}
             </div>

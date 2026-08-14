@@ -90,7 +90,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!userId) {
-      navigate('/');
+      navigate('/', { preventScrollReset: true });
       return;
     }
 
@@ -192,7 +192,7 @@ export default function DashboardPage() {
   const filteredTasks = allTasks.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className={`flex h-screen overflow-hidden ${isDarkMode ? 'bg-[#0F111A] text-slate-300' : 'bg-[#F8F9FB] text-slate-600'} font-sans text-sm transition-colors duration-300`}>
+    <div className={`flex h-screen overflow-hidden ${isDarkMode ? 'bg-[#0F111A] text-slate-300' : 'bg-[#F8F9FB] text-slate-600'} font-sans text-sm transition-colors duration-300 animate-in fade-in`}>
       
       <div className={`w-64 flex flex-col justify-between border-r ${isDarkMode ? 'border-slate-800 bg-[#161B26]' : 'border-slate-200 bg-white'} z-20 shrink-0 hidden lg:flex`}>
         <div className="overflow-y-auto custom-scrollbar">
@@ -220,7 +220,7 @@ export default function DashboardPage() {
           <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
              <Settings size={18} /> Settings
           </Link>
-          <button onClick={() => { localStorage.clear(); navigate('/'); }} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium">
+          <button onClick={() => { localStorage.clear(); navigate('/', { preventScrollReset: true }); }} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium">
             <LogOut size={18} /> Logout
           </button>
         </div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
             </button>
             
             <div 
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate('/profile', { preventScrollReset: true })}
               className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-bold shadow-sm border border-violet-200 cursor-pointer hover:ring-2 ring-violet-500 transition-all overflow-hidden"
               title="View Profile"
             >
@@ -269,11 +269,14 @@ export default function DashboardPage() {
         </header>
 
         {/* Added pb-24 here so content is not hidden behind the mobile bottom navbar */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24 transition-opacity duration-500">
           <div className="max-w-[1400px] w-full mx-auto space-y-6">
             
             {isLoading ? (
-              <div className="text-center py-20 text-slate-400">Loading your secure database dashboard...</div>
+              <div className="flex flex-col items-center justify-center h-full space-y-4 py-20">
+                <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-slate-400 animate-pulse">Syncing your secure dashboard...</p>
+              </div>
             ) : (
               <>
                 <div className={`w-full bg-gradient-to-r ${weather.bgGradient} rounded-3xl p-8 text-white flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden shadow-md transition-all duration-700`}>
@@ -386,7 +389,7 @@ export default function DashboardPage() {
                         <li>Maintain your daily hydration and habit streaks.</li>
                       </ul>
                     </div>
-                    <button onClick={() => navigate('/chat')} className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-md shadow-violet-500/20">
+                    <button onClick={() => navigate('/chat', { preventScrollReset: true })} className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-md shadow-violet-500/20">
                       <Sparkles size={16} /> Ask AI Coach
                     </button>
                   </div>

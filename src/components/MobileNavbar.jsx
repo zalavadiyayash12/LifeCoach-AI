@@ -22,6 +22,7 @@ export default function MobileNavbar() {
     { name: 'Focus', path: '/focus', icon: <Clock size={20} /> },
     { name: 'AI Coach', path: '/chat', icon: <Bot size={20} /> },
     { name: 'Profile', path: '/profile', icon: <User size={20} /> },
+    { name:'settings', path:'/settings', icon:<User size={20} />},
   ];
 
   return (
@@ -38,7 +39,7 @@ export default function MobileNavbar() {
           <button
             key={index}
             onClick={() => {
-              // Yeh ensure karega ki agar user wahi page pe hai ya navigate kar raha hai toh unwanted scroll jump na ho
+              // preventScrollReset lagane se page top par jump nahi karega
               navigate(item.path, { preventScrollReset: true });
             }}
             className={`flex flex-col items-center justify-center flex-shrink-0 transition-all duration-300 relative ${
