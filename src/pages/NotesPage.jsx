@@ -69,31 +69,20 @@ export default function NotesPage() {
       });
   }, [userId, navigate]);
 
-  const updateNotesInDatabase = async (updatedNotes) => {
-    setNotes(updatedNotes); // Instant UI update
+  // Robust Database Sync for Notes
+  const updateNotesInDatabase = async (newNotesList) => {
+    setNotes(newNotesList); // Instant UI update
+    if (!userId) return;
+
     try {
-      // Primary sync attempt
-      let response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
+      const response = await fetch(`https://lifecoach-ai-169y.onrender.com/api/user/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          dataType: 'notes',
-          dataValue: updatedNotes
+          notes: newNotesList
         })
       });
-
-      // Fallback sync attempt if primary fails
-      if (!response.ok) {
-        response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/notes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            notes: updatedNotes
-          })
-        });
-      }
 
       const result = await response.json();
       if (!response.ok) {

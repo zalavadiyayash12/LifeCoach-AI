@@ -46,6 +46,7 @@ export default function TasksPage() {
     }
   }, [userId]);
 
+  // Fetch Tasks Safely
   useEffect(() => {
     if (!userId) {
       navigate('/');
@@ -55,8 +56,12 @@ export default function TasksPage() {
     fetch(`https://lifecoach-ai-169y.onrender.com/api/user/get-data?userId=${userId}`)
       .then(res => res.json())
       .then(data => {
-        setTasks(Array.isArray(data.tasks) ? data.tasks : []);
-        if (data.profile && data.profile.avatar) {
+        if (data && Array.isArray(data.tasks)) {
+          setTasks(data.tasks);
+        } else {
+          setTasks([]);
+        }
+        if (data && data.profile && data.profile.avatar) {
           setProfileImage(data.profile.avatar);
           localStorage.setItem(`lifeCoach_profileImage_${userId}`, data.profile.avatar);
         }
@@ -68,31 +73,20 @@ export default function TasksPage() {
       });
   }, [userId, navigate]);
 
-  const updateTasksInDatabase = async (updatedTasks) => {
-    setTasks(updatedTasks); // Instant UI update
+  // Robust Database Sync for Tasks
+  const updateTasksInDatabase = async (newTasksList) => {
+    setTasks(newTasksList); // Instant UI update so nothing disappears
+    if (!userId) return;
+
     try {
-      // Primary sync attempt
-      let response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
+      const response = await fetch(`https://lifecoach-ai-169y.onrender.com/api/user/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          dataType: 'tasks',
-          dataValue: updatedTasks
+          tasks: newTasksList
         })
       });
-
-      // Fallback sync attempt if primary fails
-      if (!response.ok) {
-        response = await fetch('https://lifecoach-ai-169y.onrender.com/api/user/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            tasks: updatedTasks
-          })
-        });
-      }
 
       const result = await response.json();
       if (!response.ok) {
@@ -128,7 +122,7 @@ export default function TasksPage() {
   };
 
   const moveTask = (taskId, currentStatus) => {
-    const current = currentStatus.toLowerCase().replace(/\s+/g, '');
+    const current = (currentStatus || 'todo').toLowerCase().replace(/\s+/g, '');
     let nextStatus = 'todo';
     if (current === 'todo') nextStatus = 'inprogress';
     else if (current === 'inprogress') nextStatus = 'review';
@@ -159,7 +153,7 @@ export default function TasksPage() {
       progress: newTaskColumn === 'done' ? 100 : (newTaskColumn === 'inprogress' ? 10 : 0)
     };
 
-    const updated = [...tasks, newTask];
+    const updated = [newTask, ...tasks]; // Add to top of list
     updateTasksInDatabase(updated);
 
     setIsModalOpen(false);
