@@ -22,7 +22,7 @@ export default function MobileNavbar() {
     { name: 'Focus', path: '/focus', icon: <Clock size={20} /> },
     { name: 'AI Coach', path: '/chat', icon: <Bot size={20} /> },
     { name: 'Profile', path: '/profile', icon: <User size={20} /> },
-    { name:'settings', path:'/settings', icon:<User size={20} />},
+    { name: 'Settings', path: '/settings', icon: <Settings size={18} /> }
   ];
 
   return (
