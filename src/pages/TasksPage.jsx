@@ -20,9 +20,8 @@ export default function TasksPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   
-  const userName = localStorage.getItem('lifeCoach_userName') || 'User';
-  const rawUserId = localStorage.getItem('lifeCoach_userUid'); 
-  const userId = rawUserId ? rawUserId.replace(/['"]+/g, '').trim() : null;
+  const userId = localStorage.getItem('lifeCoach_userUid');
+  const [userName, setUserName] = useState(() => localStorage.getItem('lifeCoach_userName') || 'User');
   const [profileImage, setProfileImage] = useState(null);
 
   const [activeFilter, setActiveFilter] = useState('All'); 
@@ -38,32 +37,31 @@ export default function TasksPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    if (userId) {
-      const savedPhoto = localStorage.getItem(`lifeCoach_profileImage_${userId}`);
-      if (savedPhoto) {
-        setProfileImage(savedPhoto);
-      }
-    }
-  }, [userId]);
-
-  // Fetch Tasks Safely
-  useEffect(() => {
     if (!userId) {
       navigate('/');
       return;
     }
 
-    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/get-data?userId=${userId}`)
+    const savedPhoto = localStorage.getItem(`lifeCoach_profileImage_${userId}`);
+    if (savedPhoto) {
+      setProfileImage(savedPhoto);
+    }
+
+    // Exact same working endpoint structure as GoalsPage
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
-        if (data && Array.isArray(data.tasks)) {
-          setTasks(data.tasks);
-        } else {
-          setTasks([]);
-        }
-        if (data && data.profile && data.profile.avatar) {
-          setProfileImage(data.profile.avatar);
-          localStorage.setItem(`lifeCoach_profileImage_${userId}`, data.profile.avatar);
+        if (data && !data.message) {
+          if (data.name) {
+            setUserName(data.name.split(' ')[0]);
+            localStorage.setItem('lifeCoach_userName', data.name.split(' ')[0]);
+          }
+
+          setTasks(Array.isArray(data.tasks) ? data.tasks : []);
+          if (data.profile && data.profile.avatar) {
+            setProfileImage(data.profile.avatar);
+            localStorage.setItem(`lifeCoach_profileImage_${userId}`, data.profile.avatar);
+          }
         }
         setIsLoading(false);
       })
@@ -73,25 +71,19 @@ export default function TasksPage() {
       });
   }, [userId, navigate]);
 
-  // Robust Database Sync for Tasks
-  const updateTasksInDatabase = async (newTasksList) => {
-    setTasks(newTasksList); // Instant UI update so nothing disappears
-    if (!userId) return;
-
+  // Exact same working update logic as GoalsPage
+  const updateTasksInDatabase = async (updatedTasks) => {
+    setTasks(updatedTasks);
     try {
-      const response = await fetch(`https://lifecoach-ai-169y.onrender.com/api/user/tasks`, {
+      await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          tasks: newTasksList
+          dataType: 'tasks',
+          dataValue: updatedTasks
         })
       });
-
-      const result = await response.json();
-      if (!response.ok) {
-        console.error("Failed to save tasks to database:", result.message);
-      }
     } catch (err) {
       console.error("Error saving tasks to database:", err);
     }
@@ -153,7 +145,7 @@ export default function TasksPage() {
       progress: newTaskColumn === 'done' ? 100 : (newTaskColumn === 'inprogress' ? 10 : 0)
     };
 
-    const updated = [newTask, ...tasks]; // Add to top of list
+    const updated = [newTask, ...tasks];
     updateTasksInDatabase(updated);
 
     setIsModalOpen(false);

@@ -20,8 +20,7 @@ export default function NotesPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   
-  const rawUserId = localStorage.getItem('lifeCoach_userUid');
-  const userId = rawUserId ? rawUserId.replace(/['"]+/g, '').trim() : null;
+  const userId = localStorage.getItem('lifeCoach_userUid');
   const [userName, setUserName] = useState(() => localStorage.getItem('lifeCoach_userName') || 'User');
   const [profileImage, setProfileImage] = useState(null);
 
@@ -46,7 +45,8 @@ export default function NotesPage() {
       setProfileImage(savedPhoto);
     }
 
-    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/get-data?userId=${userId}`)
+    // Exact same working endpoint as GoalsPage
+    fetch(`https://lifecoach-ai-169y.onrender.com/api/user/data/${userId}`)
       .then(res => res.json())
       .then(data => {
         if (data && !data.message) {
@@ -69,25 +69,19 @@ export default function NotesPage() {
       });
   }, [userId, navigate]);
 
-  // Robust Database Sync for Notes
-  const updateNotesInDatabase = async (newNotesList) => {
-    setNotes(newNotesList); // Instant UI update
-    if (!userId) return;
-
+  // Exact same working update logic as GoalsPage
+  const updateNotesInDatabase = async (updatedNotes) => {
+    setNotes(updatedNotes);
     try {
-      const response = await fetch(`https://lifecoach-ai-169y.onrender.com/api/user/notes`, {
+      await fetch('https://lifecoach-ai-169y.onrender.com/api/user/update-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          notes: newNotesList
+          dataType: 'notes',
+          dataValue: updatedNotes
         })
       });
-
-      const result = await response.json();
-      if (!response.ok) {
-        console.error("Failed to save notes to database:", result.message);
-      }
     } catch (err) {
       console.error("Error saving notes to database:", err);
     }
