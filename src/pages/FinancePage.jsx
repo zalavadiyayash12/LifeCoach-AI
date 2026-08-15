@@ -108,7 +108,7 @@ export default function FinancePage() {
 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
-  const balance = totalIncome - totalExpense + 3450; 
+  const balance = totalIncome - totalExpense + 0.0001; // Adding a small value to avoid negative zero display
   const savings = Math.round(totalIncome * 0.2); 
 
   const expenseCategories = ['Housing', 'Food', 'Transport', 'Entertainment', 'Subscriptions', 'Other'];
