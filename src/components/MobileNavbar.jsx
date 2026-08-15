@@ -32,12 +32,12 @@ export default function MobileNavbar() {
         ::-webkit-scrollbar { display: none; }
       `}} />
 
-      {navItems.map((item, index) => {
+      {navItems.map((item) => {
         const isActive = location.pathname === item.path;
 
         return (
           <button
-            key={index}
+            key={item.path}
             onClick={() => {
               // preventScrollReset lagane se page top par jump nahi karega
               navigate(item.path, { preventScrollReset: true });

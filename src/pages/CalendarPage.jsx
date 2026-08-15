@@ -222,7 +222,7 @@ export default function CalendarPage() {
               else if (item.name === 'Health') path = '/health';
               return (
                 <Link 
-                  key={i} 
+                  key={item.path || i} 
                   to={path}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all relative z-50 ${item.active ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-semibold' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                 >
